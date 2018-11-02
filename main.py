@@ -4,9 +4,8 @@ from pyglet.window import key, FPSDisplay;
 # drna import lel class li na7tajouha
 from gameObjects import GameObject, preload_image;
 from gameAnim import GameAnim;
-from random import randint;
 
-# vid: 9
+#TODO: add more features to the game
 class GameWindow( pyglet.window.Window ):
 
     def __init__( self, *args, **kwargs ):
@@ -17,28 +16,26 @@ class GameWindow( pyglet.window.Window ):
 
         # hadi location ta3 l window f screen
         self.set_location( 400, 0 );
-        self.framerate: float = 1/60.0;
+        self.frame_rate: float = 1/60;
 
         # hna criyina display lel FPS
         self.fps_display = FPSDisplay( self );
 
         # set permission to go left or right, using the new syntax on python
-        self.left: bool  = False;
+        self.left:  bool = False;
         self.right: bool = False;
-        self.fire: bool  = False;
-        #self.is_collided: bool = False;
+        self.fire:  bool = False;
 
         self.player_speed: int = 260;
-        self.spawn_time: int   =  30;
-        self.score: int        =   0;
-
-        self.firerate: float = 0.0;
+        self.spawn_time:   int =  30;
+        self.score:        int =   0;
+        self.fire_rate:    int =  10;
 
         # hna criyina sprite ta3 l player ta3na
-        player_sprite = pyglet.sprite.Sprite( preload_image( "PlayerShip.png" ) );
+        player_sprite: object = pyglet.sprite.Sprite( preload_image( "PlayerShip.png" ) );
 
         # drna instance lel GameObject class bach criyina player ta3na
-        self.player = GameObject( 190, 50, player_sprite );
+        self.player: object = GameObject( 190, 50, player_sprite );
 
         # the laser that will be launched by our player
         self.player_laser =  preload_image( "laser.png" );
@@ -63,54 +60,31 @@ class GameWindow( pyglet.window.Window ):
         #enemy_image = preload_image( "enemyShip_Sh01.png" );
         self.enemies = [];
         #self.enemy1 = GameObject( 450, 600, pyglet.sprite.Sprite( enemy_image ), batch = self.mainBatch, image = enemy_image );
-        self.enemy = GameAnim( pos_x = 450, pos_y = 700, image = "enemyShip_Sh01.png", batch = self.mainBatch );
+        self.enemy: GameAnim = GameAnim( pos_x = 450, pos_y = 700, image = "enemyShip_Sh01.png", batch = self.mainBatch );
 
-        if self.spawn_time < 30:
+        self.enemy.animate(1, 15, 100, 100);
+        self.enemies.append(self.enemy);
 
-            self.spawn_time += 1;
-
-        elif self.spawn_time >= 30:
-
-            self.enemy.animate( 1, 15, 100, 100 );
-            self.enemies.append( self.enemy );
-
-            self.spawn_time = 0;
-
-        self.score_label = pyglet.text.Label( text = "score: " + str( self.score ), x = 370, y = 655, font_size = 32, batch = self.mainBatch );
+        self.score_label: object = pyglet.text.Label( text = "score: " + str( self.score ), x = 370, y = 655, font_size = 32, batch = self.mainBatch );
         self.score_label.color = [ 200, 20, 100, 255 ];
 
     # hadi l func dir handle lel inputs, ta9bel two param, symbol ay l key li ta3fess 3lih w modifiers ay ctrl maj...
     def on_key_press( self, symbol, modifiers ):
 
         # loukan ta3fess 3la key.RIGHT
-        if symbol == key.RIGHT:
-
-            # velocity.x twali tsawi 250
-            #self.player.velocity[0] = 250;
-            self.right = True;
-
-        if symbol == key.LEFT:
-
-            #self.player.velocity[0] = -250;
-            self.left = True;
-
-        if symbol == key.ESCAPE:
-            # exit the game
-            pyglet.app.exit();
-
-        if symbol == key.SPACE:
-
-            self.fire = True;
+        if symbol == key.RIGHT:  self.right = True;
+        elif symbol == key.LEFT:    self.left = True;
+        elif symbol == key.ESCAPE: pyglet.app.exit();
+        elif symbol == key.SPACE:   self.fire = True;
 
     # hadi l func ta3 ki ta3fess 3la key w tagla3 sba3ak
     def on_key_release( self, symbol, modifiers ):
 
         # loukan key howa RIGHT wala LEFT
-        if symbol == key.RIGHT or symbol == key.LEFT or symbol == key.SPACE:
-
-            self.fire = False;
-            self.left = False;
-            self.right = False;
+        if symbol == key.RIGHT:   self.right = False;
+        elif symbol == key.LEFT:  self.left  = False;
+        elif symbol == key.SPACE: self.fire  = False;
+        elif symbol == key.ESCAPE: pyglet.app.exit();
 
 
     def update_player( self, dt ):
@@ -129,7 +103,7 @@ class GameWindow( pyglet.window.Window ):
 
     def update_player_laser( self, dt ):
 
-        newEnemy = GameAnim( pos_x = 450, pos_y = 700, image = "enemyShip_Sh01.png", batch = self.mainBatch );
+        newEnemy: object = GameAnim( pos_x = 450, pos_y = 700, image = "enemyShip_Sh01.png", batch = self.mainBatch );
 
         for laser in self.player_laser_list:
             # update laser
@@ -144,7 +118,7 @@ class GameWindow( pyglet.window.Window ):
 
             for enemy in self.enemies:
 
-                if enemy.collision( laser ):
+                if enemy.collided( laser ):
 
                     enemy.destroy();
                     self.enemies.remove( enemy );
@@ -157,15 +131,15 @@ class GameWindow( pyglet.window.Window ):
 
     def player_fire( self, dt ):
 
-        self.firerate -= dt;
+        if self.fire_rate < 10: self.fire_rate += 1;
 
         # if you are shooting so append a new laser to the list of lasers
-        if self.fire and self.firerate <= 0.0:
+        if self.fire and self.fire_rate >= 10:
             # when you press SPACE you will add a player_laser object at position of the center of player
-            self.player_laser_list.append( GameObject( self.player.posX + 30, self.player.posY + 93,
-                                                       pyglet.sprite.Sprite( self.player_laser ) ) );
+            self.player_laser_list.append( GameObject( self.player.posX + 30, self.player.posY + 93, pyglet.sprite.Sprite( self.player_laser ) ) );
 
-            self.framerate += 0.1;
+            self.fire_rate = 0;
+
 
 
     # hadi l func hiya li dir handling lel space movements...
@@ -185,36 +159,26 @@ class GameWindow( pyglet.window.Window ):
                 # 3awed zid wa7ed f top (posY=1100)
                 self.space_list.append( GameObject( 0, 900, pyglet.sprite.Sprite( self.space_img ) ) );
 
-            # space jdid 3tinah velocity
-            #space.velocity[1] = -70;
-
 
     def update_enemy( self, dt ):
 
-        newEnemy = GameAnim( pos_x = 450, pos_y = 700, image = "enemyShip_Sh01.png", batch = self.mainBatch );
+        newEnemy: GameAnim = GameAnim( pos_x = 450, pos_y = 700, image = "enemyShip_Sh01.png", batch = self.mainBatch );
 
         #self.enemy.update( _y = 150*dt );
         for _enemy in self.enemies:
 
             _enemy.update( 300*dt );
-            _enemy.pos_y -= 300*dt;
-            #_enemy.collision( self.player );
 
-            if _enemy.collision( self.player ):
+            if _enemy.collided( self.player ):
 
                 _enemy.destroy();
                 self.enemies.remove( _enemy );
-                GameAnim.collided = False;
 
                 newEnemy.animate( 1, 15, 100, 100 );
                 self.enemies.append( newEnemy );
 
-
-            #print( len( self.enemies ) );
-            #print( _enemy.pos_y );
             if _enemy.pos_y <= 0:
 
-                #GameAnim.collided = False;
                 _enemy.destroy();
                 self.enemies.remove( _enemy );
 
@@ -278,7 +242,7 @@ if __name__ == "__main__":
     window = GameWindow( 900, 700, "Space invader", resizable = False );
 
     # hadi clock.schedule_interval() dir call lel update func every frame
-    pyglet.clock.schedule_interval( window.update, window.framerate );
+    pyglet.clock.schedule_interval( window.update, window.frame_rate );
 
     # run the app
     pyglet.app.run();
