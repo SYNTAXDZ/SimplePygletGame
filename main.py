@@ -236,13 +236,18 @@ class GameWindow( pyglet.window.Window ):
         self.mainBatch.draw();
 
 
-if __name__ == "__main__":
+def main() -> None:
 
     # create an instance of GameWindow class
-    window = GameWindow( 900, 700, "Space invader", resizable = False );
+    window = GameWindow(900, 700, "Space invader", resizable=False);
 
     # hadi clock.schedule_interval() dir call lel update func every frame
-    pyglet.clock.schedule_interval( window.update, window.frame_rate );
+    pyglet.clock.schedule_interval(window.update, window.frame_rate);
 
     # run the app
     pyglet.app.run();
+
+
+if __name__ == "__main__":
+
+    main();
